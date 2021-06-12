@@ -1,0 +1,32 @@
+# 1. 给定人数、每个人初始的投入努力，考虑到其他人的情况，如果提升自己的努力程度E可以升高实际效用I，则参与者会选择增加E，求解他们最后的平衡状态，即无法通过提高E而增加I
+# 2. g,f,I三个函数这里只是一个示例，不同的函数肯定会对于最后结果有不同的影响
+#（抱歉诸位学长学姐，因为我理解的第一部分好像是这样做的，但是又感觉太简单了，如果诸位学长学姐认为我做的需要改进的地方，请您尽管批评指教
+
+from numpy import *
+def g(E): #心理成本，关于E的导数单调递增
+    return E**2
+def f(E, other_effort):#其他人回报，关于other_effort偏导为负数
+    return 100*E-0.01*other_effort
+def I(E,other_effort):#实际效用
+    return f(E,other_effort)-g(E)
+if __name__ == '__main__':
+    effort = [1,1,1,1,1,1,1,1,1,1] #每个人投入努力的初始值，这里只是示例
+    num_of_person=10
+    flag=0
+    num=0
+    while True:
+        print('第 %d 次迭代'%(num))
+        num=num+1
+        flag=0
+        index=0
+        sum_of_effort = sum(effort)
+        for E in effort:
+            print('第 %d 个人的实际效用为 %f'%(index,I(E,(sum_of_effort-E)/(num_of_person-1))))
+            print('第 %d 个人增加努力后的实际效用为 %f' % (index, I(E+1, (sum_of_effort - E) / (num_of_person - 1))))
+            if I(E+1,(sum_of_effort-E)/(num_of_person-1))>I(E,(sum_of_effort-E)/(num_of_person-1)):
+                effort[index]=effort[index]+1
+                flag=1
+            index=index+1
+        print(effort)
+        if flag==0:
+            break
