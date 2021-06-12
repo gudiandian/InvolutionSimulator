@@ -13,5 +13,7 @@
 python3 involution.py --k <involution level> --n <number of nodes> --e <number of edges>
 ```
 `k`为一个大于0的可调的参数，k越大，节点越容易在别人比自己努力的时候受到别人影响，从而加剧内卷程度
+
 `n`为网络中节点个数
+
 `e`为网络中的边数
