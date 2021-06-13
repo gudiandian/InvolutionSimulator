@@ -39,5 +39,5 @@ if __name__ == '__main__':
 				flag = 1
 			index = index + 1
 		print(effort_list)
-		if flag == 0:
+		if flag == 0:# 当且仅当所有人无法通过提升自己的卷度E来提高实际效用I时，达到平衡
 			break
