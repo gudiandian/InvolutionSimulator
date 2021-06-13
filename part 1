@@ -5,11 +5,11 @@
 import networkx as nx
 import argparse
 import numpy as np
-def g(E): #心理成本，关于E的导数单调递增
+def g(E): #每个节点的心理成本，关于E的导数单调递增
     return E**2
-def f(E, other_effort):#其他人回报，关于other_effort偏导为负数，关于E导数单调递减
+def f(E, other_effort):#与系统中其他人付出相关的回报，关于other_effort偏导为负数，关于E导数单调递减
     return 100*E-0.01*other_effort
-def I(E,other_effort):#实际效用
+def I(E,other_effort):#实际的效用
     return f(E,other_effort)-g(E)
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -18,10 +18,10 @@ if __name__ == '__main__':
 	G=nx.Graph() 	# 创建空的简单无向图
 	effort_list=[]	# 每个节点的卷度
 	sum_of_effort=0
-	for i in range(1, args.n + 1):
+	for i in range(1, args.n + 1):	# 每个节点的随机初始卷度
 		G.add_nodes_from([(i, {'effort': round(np.random.random((1, 1))[0][0], 2)})])
 	node_labels = nx.get_node_attributes(G, 'effort')
-	for i in range(1, args.n + 1):
+	for i in range(1, args.n + 1):	# effort_list为每个节点的卷度构成的list
 		effort_list.append(node_labels[i])
 	flag = 0
 	num = 1
@@ -34,7 +34,7 @@ if __name__ == '__main__':
 		for E in effort_list:
 			print('第 %d 个人的实际效用为 %f' % (index, I(E, (sum_of_effort - E) / (args.n - 1))))
 			print('第 %d 个人增开努力后的实际效用为 %f' % (index, I(E + 1, (sum_of_effort - E) / (args.n - 1))))
-			if I(E + 1, (sum_of_effort - E) / (args.n - 1)) > I(E, (sum_of_effort - E) / (args.n - 1)):
+			if I(E + 1, (sum_of_effort - E) / (args.n - 1)) > I(E, (sum_of_effort - E) / (args.n - 1)): # 如果提升自己的努力程度E可以升高实际效用I，则参与者会选择增加E
 				effort_list[index] = effort_list[index] + 1
 				flag = 1
 			index = index + 1
