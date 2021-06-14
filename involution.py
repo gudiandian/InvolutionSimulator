@@ -6,15 +6,14 @@
 import argparse
 import math
 import networkx as nx
-from networkx.generators.random_graphs import fast_gnp_random_graph
 import numpy as np
-import sympy
 from matplotlib import pyplot as plt
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=10, help='number of nodes in the network')
 parser.add_argument('--e', type=int, default=30, help='number of edges in the network')
+parser.add_argument('--s', type=int, default=0.5, help='swap rate of graph building')
 args = parser.parse_args()
 
 
@@ -64,19 +63,21 @@ def update_effort(G):
     return
 
 
-def g(E):
+def g(E, other_effort):
     # 每个节点的心理成本，关于E的导数单调递增
-    return E ** 2
+    # return E ** 2
+    return E ** other_effort
 
 
-def f(E, other_eft_avg):
+
+def f(args, E, other_eft_avg):
     # 与系统中其他人付出相关的回报，关于other_effort偏导为负数，关于E导数单调递减
     return args.n * E - other_eft_avg * (args.n - 1)
 
 
-def I(E, other_effort):
+def I(args, E, other_effort):
     # 收益函数，计算当前effort下每个节点的收益，并更新节点收益
-    ret = f(E, other_effort) - g(E)
+    ret = f(args, E, other_effort) - g(E, other_effort)
     # 这里使用sigmoids函数，系数0.1是防止sigmoid在ret绝对值很大的时候返回0
     # 如果一个人像qipeng一样菜，那么努力后得到的收益会很低，因为还是那么菜
     # 如果一个人是avg水准的，那么努力一点收益应该是比较明显的
@@ -87,13 +88,24 @@ def I(E, other_effort):
 def build_graph(args):
     # 采用第一次作业友谊悖论的方式构建社交网络
     graph = [[False] * args.n for _ in range(args.n)]
+    cur_edge = 0
     for d in range(1, math.ceil(args.e / args.n)):
         for i in range(args.n):
             j = (i + d) % args.n
             graph[i][j] = graph[j][i] = True
+            cur_edge += 1
+    while cur_edge != args.e:
+        edge_num = np.random.choice(args.n * (args.n - 1) // 2)  # 随机生成不重复的边
+        node1 = edge_num // args.n
+        node2 = edge_num % args.n
+        if node1 == node2 or graph[node1][node2] is True:
+            continue
+        else:
+            cur_edge += 1
+            graph[node1][node2] = graph[node2][node1] = True
     relations = [i * args.n + j for i in range(args.n) for j in range(args.n) if j < i and graph[i][j]]
     others = [i * args.n + j for i in range(args.n) for j in range(args.n) if j < i and not graph[i][j]]
-    swap_size = int(0.5 * len(relations))
+    swap_size = min(int(args.s * len(relations)), len(relations), len(others))
     removed_relation = np.random.choice(relations, size=swap_size, replace=False)
     new_relation = np.random.choice(others, size=swap_size, replace=False)
     for id in removed_relation:
@@ -113,7 +125,6 @@ def part2():
     weighted_graph = np.multiply(graph, np.random.random([args.n, args.n]))
     weighted_graph = (weighted_graph + weighted_graph.T)  # 确保邻接矩阵是对称的，并且值域 [0, 2]，邻居里面也有熟悉和不熟悉的
     G.add_weighted_edges_from([(i, j, weighted_graph[i][j]) for i in range(args.n) for j in range(i) if graph[i][j]])
-
     print(graph)
     rnd = 0
     while True:
@@ -125,7 +136,10 @@ def part2():
             effort = G.nodes[node]['effort']
             # 邻居的影响应该是加权平均的
             neighbor_efforts_avg = float(np.mean([G.nodes[neighbor]['effort'] * weighted_graph[node][neighbor] for neighbor in range(args.n) if graph[node][neighbor]]))
-            print('第 %d 个人的实际效用为 %f\t增加努力后的实际效用为 %f' % (node, I(effort, neighbor_efforts_avg), I(G.nodes[node]['new_effort'], neighbor_efforts_avg)))
+            # print('第 %d 个人的实际效用为 %f\t增加努力后的实际效用为 %f' % (node, I(effort, neighbor_efforts_avg), I(G.nodes[node]['new_effort'], neighbor_efforts_avg)))
+            print('第 %d 个人努力程度为 %f\t邻居努力程度为 %f\t实际效用为 %f\t增加努力后的实际效用为 %f' %
+                  (node, effort, neighbor_efforts_avg, I(effort, neighbor_efforts_avg),
+                   I(G.nodes[node]['new_effort'], neighbor_efforts_avg)))
             # 如果提升自己的努力程度E可以升高实际效用I，则参与者会选择增加E
             if I(G.nodes[node]['new_effort'], neighbor_efforts_avg) <= I(effort, neighbor_efforts_avg):
                 G.nodes[node]['new_effort'] = G.nodes[node]['effort']
@@ -171,9 +185,10 @@ def part1():
             new_effort(node, G.nodes[node], G)
             effort = G.nodes[node]['effort']
             other_effort_avg = (sum_of_effort - effort) / (args.n - 1)
-            print(type(effort), type(other_effort_avg))
+            # print(type(effort), type(other_effort_avg))
             print('debug: effort = %f, other_effort = %f' % (effort, other_effort_avg))
-            print('第 %d 个人的实际效用为 %f\t增加努力后的实际效用为 %f' % (node, I(effort, other_effort_avg), I(G.nodes[node]['new_effort'], other_effort_avg)))
+            print('第 %d 个人努力程度为 %f\t邻居努力程度为 %f\t实际效用为 %f\t增加努力后的实际效用为 %f' %
+                  (node, effort, other_effort_avg, I(effort, other_effort_avg), I(G.nodes[node]['new_effort'], other_effort_avg)))
             # 如果提升自己的努力程度E可以升高实际效用I，则参与者会选择增加E
             if I(G.nodes[node]['new_effort'], other_effort_avg) <= I(effort, other_effort_avg):
                 G.nodes[node]['new_effort'] = G.nodes[node]['effort']
