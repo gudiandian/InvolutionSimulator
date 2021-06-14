@@ -38,6 +38,7 @@ def draw(G, title=None):
     if title:
         plt.title(title)
     plt.show()
+    plt.savefig("res.jpg")
 
 
 def new_effort(nodeid, node, G):
@@ -187,5 +188,43 @@ def part1():
     draw(G, 'finish')
 
 
+def r(x):
+    return 1 - x
+
+
+def fsize(z):
+    return math.log2((1.5 - 0.5 * z)/(1 - 0.5 * z))
+
+
+def rf(z):
+    ret = []
+    for i in range(len(z)):
+        ret.append(r(z[i]) * fsize(z[i]))
+    return ret
+
+
+def rr(z):
+    ret = []
+    for i in range(len(z)):
+        ret.append(1.0 - (0.3 / fsize(z[i])))
+    return ret
+
+
+def part3():
+    x = np.arange(0, 1, 0.01)
+    y = rf(x)
+    plt.title("r(z)f(z)")
+    plt.plot(x, y)
+    plt.show()
+    x2 = np.arange(0, 1, 0.01)
+    y2 = rr(x)
+    x3 = np.arange(0, 1, 0.01)
+    y3 = x3
+    plt.title("z and z*")
+    plt.plot(x2, y2)
+    plt.plot(x3, y3)
+    plt.show()
+
+
 if __name__ == '__main__':
-    part2()
+    part3()
