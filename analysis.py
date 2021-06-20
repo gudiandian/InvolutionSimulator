@@ -8,7 +8,6 @@ from involution import draw, new_effort, update_effort, g, f, I, build_graph
 parser = argparse.ArgumentParser()
 parser.add_argument('--n', type=int, default=10, help='number of nodes in the network')
 parser.add_argument('--e', type=int, default=20, help='number of edges in the network')
-parser.add_argument('--s', type=int, default=0.8, help='swap rate of graph building')
 
 args = parser.parse_args()
 

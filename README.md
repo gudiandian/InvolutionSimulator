@@ -9,10 +9,18 @@
 
 ## Run Simulation
 
+通过网络级联模型模拟“内卷”的网络效应。
+
 ```bash
-python3 involution.py --n <number of nodes> --e <number of edges>
+python3 involution.py --n <number of nodes> --e <number of edges> -s <graph swap rate>
 ```
 
 `n`为网络中节点个数
 
 `e`为网络中的边数
+
+## Run Analysis
+探究平均卷度与图连通性（边的数量）的关系
+```bash
+python3 analysis.py --n <number of nodes> --e <number of edges>
+```
